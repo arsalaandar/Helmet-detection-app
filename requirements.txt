@@ -4,7 +4,6 @@ streamlit-webrtc
 ultralytics
 paddleocr
 paddlepaddle
-opencv-python==0.0.0 
 opencv-python-headless
 numpy
 Pillow
