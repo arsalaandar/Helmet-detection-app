@@ -1,0 +1,30 @@
+# python
+__pycache__/
+*.pyc
+
+# venv
+.venv/
+venv/
+
+# ultralytics
+runs/
+
+# datasets
+datasets/
+data/
+
+# models weights (important)
+*.pt
+*.pth
+
+# images / evidence
+violations/
+*.jpg
+*.png
+
+# large files
+*.zip
+*.mp4
+
+# OS
+.DS_Store
