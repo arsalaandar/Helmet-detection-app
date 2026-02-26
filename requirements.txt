@@ -1,12 +1,14 @@
-
 streamlit
 streamlit-webrtc
 ultralytics
 paddleocr
 paddlepaddle
-opencv-python-headless==4.8.1.78
 numpy<2.0.0
 Pillow
 torch
 torchvision
 av
+opencv-python-headless==4.8.1.78
+
+libgl1-mesa-glx
+libglib2.0-0
