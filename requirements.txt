@@ -10,5 +10,3 @@ torchvision
 av
 opencv-python-headless==4.8.1.78
 
-libgl1-mesa-glx
-libglib2.0-0
