@@ -1,5 +1,5 @@
 import streamlit as st
-from streamlit_webrtc import webrtc_streamer, VideoProcessorBase,RTCConfiguration
+from streamlit_webrtc import webrtc_streamer, VideoProcessorBase, RTCConfiguration
 import av
 import cv2
 import numpy as np
@@ -45,7 +45,8 @@ VIOLATION_CSV = "violations.csv"
 VIOLATION_EXCEL = "violations.xlsx"
 
 # ----------------------------
-# HELPER FUNCTIONS
+# RTC CONFIGURATION (TURN server for Streamlit Cloud)
+# ----------------------------
 RTC_CONFIGURATION = RTCConfiguration({
     "iceServers": [
         {"urls": ["stun:stun.l.google.com:19302"]},
@@ -59,8 +60,17 @@ RTC_CONFIGURATION = RTCConfiguration({
             "username": "openrelayproject",
             "credential": "openrelayproject",
         },
+        {
+            "urls": ["turn:openrelay.metered.ca:443?transport=tcp"],
+            "username": "openrelayproject",
+            "credential": "openrelayproject",
+        },
     ]
 })
+
+# ----------------------------
+# HELPER FUNCTIONS
+# ----------------------------
 def correct_plate(text):
     """Correct OCR errors"""
     text = re.sub(r'[^A-Z0-9]', '', text.upper())
@@ -120,20 +130,13 @@ def format_plate(plate):
 def create_fresh_violations_file():
     """Create a fresh violations file with proper structure"""
     columns = [
-        "timestamp",
-        "plate_number",
-        "violation_type",
-        "ocr_confidence",
-        "officer_name",
-        "location",
-        "rider_image",
-        "plate_image"
+        "timestamp", "plate_number", "violation_type",
+        "ocr_confidence", "officer_name", "location",
+        "rider_image", "plate_image"
     ]
-    
     df = pd.DataFrame(columns=columns)
     df.to_csv(VIOLATION_CSV, index=False, encoding='utf-8')
     df.to_excel(VIOLATION_EXCEL, index=False, engine='openpyxl')
-    
     return df
 
 def repair_violations_file():
@@ -141,7 +144,6 @@ def repair_violations_file():
     if not os.path.exists(VIOLATION_CSV):
         return create_fresh_violations_file()
     
-    # Backup the corrupted file
     backup_file = f"violations_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
     try:
         import shutil
@@ -149,41 +151,29 @@ def repair_violations_file():
     except:
         pass
     
-    # Try to read and repair
     try:
-        # Read as text and fix
         with open(VIOLATION_CSV, 'r', encoding='utf-8', errors='ignore') as f:
             lines = f.readlines()
         
         if len(lines) == 0:
             return create_fresh_violations_file()
         
-        # Get header
-        header = lines[0].strip().split(',')
-        expected_cols = 8  # Number of columns we expect
-        
-        # Filter valid lines
-        valid_lines = [lines[0]]  # Keep header
+        expected_cols = 8
+        valid_lines = [lines[0]]
         
         for line in lines[1:]:
             parts = line.strip().split(',')
             if len(parts) == expected_cols:
                 valid_lines.append(line)
         
-        # Write repaired file
         with open(VIOLATION_CSV, 'w', encoding='utf-8') as f:
             f.writelines(valid_lines)
         
-        # Read as DataFrame
         df = pd.read_csv(VIOLATION_CSV, encoding='utf-8')
-        
-        # Save as Excel too
         df.to_excel(VIOLATION_EXCEL, index=False, engine='openpyxl')
-        
         return df
         
     except Exception as e:
-        # If repair fails, create fresh file
         return create_fresh_violations_file()
 
 def save_violation_to_excel(plate_number, rider_image, plate_image, ocr_confidence, officer_name, location):
@@ -191,12 +181,10 @@ def save_violation_to_excel(plate_number, rider_image, plate_image, ocr_confiden
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     date_str = datetime.now().strftime("%Y%m%d_%H%M%S")
     
-    # Clean inputs to avoid CSV issues
     plate_number = str(plate_number).replace(',', '_')
     officer_name = str(officer_name).replace(',', '_')
     location = str(location).replace(',', '_')
     
-    # Save images
     rider_filename = f"rider_{plate_number}_{date_str}.jpg"
     plate_filename = f"plate_{plate_number}_{date_str}.jpg"
     
@@ -206,7 +194,6 @@ def save_violation_to_excel(plate_number, rider_image, plate_image, ocr_confiden
     cv2.imwrite(str(rider_path), rider_image)
     cv2.imwrite(str(plate_path), plate_image)
     
-    # Create violation record
     new_row = {
         "timestamp": timestamp,
         "plate_number": plate_number,
@@ -219,25 +206,17 @@ def save_violation_to_excel(plate_number, rider_image, plate_image, ocr_confiden
     }
     
     try:
-        # Load existing data
         if os.path.exists(VIOLATION_CSV):
             try:
                 df = pd.read_csv(VIOLATION_CSV, encoding='utf-8')
             except:
-                # If corrupted, repair it
                 df = repair_violations_file()
         else:
             df = create_fresh_violations_file()
         
-        # Append new row
         df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-        
-        # Save to CSV
         df.to_csv(VIOLATION_CSV, index=False, encoding='utf-8')
-        
-        # Save to Excel
         df.to_excel(VIOLATION_EXCEL, index=False, engine='openpyxl')
-        
         return True
         
     except Exception as e:
@@ -250,13 +229,10 @@ def load_violations_safe():
         return None
     
     try:
-        # Try to read normally
         df = pd.read_csv(VIOLATION_CSV, encoding='utf-8')
         return df
     except Exception as e:
         st.warning(f"Violations file corrupted. Attempting repair...")
-        
-        # Try to repair
         df = repair_violations_file()
         
         if df is not None and not df.empty:
@@ -278,7 +254,7 @@ def load_models():
     return helmet_model, plate_model, person_model, ocr
 
 # ----------------------------
-# VIDEO PROCESSOR (Same as before)
+# VIDEO PROCESSOR
 # ----------------------------
 class HelmetPlateProcessor(VideoProcessorBase):
     def __init__(self):
@@ -518,7 +494,7 @@ def main():
         ctx = webrtc_streamer(
             key="helmet-live",
             video_processor_factory=HelmetPlateProcessor,
-            rtc_configuration=RTC_CONFIGURATION,
+            rtc_configuration=RTC_CONFIGURATION,   # ← TURN server added here
             media_stream_constraints={
                 "video": {"width": {"ideal": 1280}, "height": {"ideal": 720}},
                 "audio": False
