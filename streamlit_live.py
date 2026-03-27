@@ -518,6 +518,7 @@ def main():
         ctx = webrtc_streamer(
             key="helmet-live",
             video_processor_factory=HelmetPlateProcessor,
+            rtc_configuration=RTC_CONFIGURATION,
             media_stream_constraints={
                 "video": {"width": {"ideal": 1280}, "height": {"ideal": 720}},
                 "audio": False
