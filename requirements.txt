@@ -9,4 +9,4 @@ torch
 torchvision
 av
 opencv-python-headless==4.8.1.78
-opencv-contrib-python-headless
+opencv-contrib-python-headless==4.8.1.78
