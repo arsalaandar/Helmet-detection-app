@@ -1,5 +1,5 @@
 import streamlit as st
-from streamlit_webrtc import webrtc_streamer, VideoProcessorBase
+from streamlit_webrtc import webrtc_streamer, VideoProcessorBase,RTCConfiguration
 import av
 import cv2
 import numpy as np
@@ -46,7 +46,21 @@ VIOLATION_EXCEL = "violations.xlsx"
 
 # ----------------------------
 # HELPER FUNCTIONS
-# ----------------------------
+RTC_CONFIGURATION = RTCConfiguration({
+    "iceServers": [
+        {"urls": ["stun:stun.l.google.com:19302"]},
+        {
+            "urls": ["turn:openrelay.metered.ca:80"],
+            "username": "openrelayproject",
+            "credential": "openrelayproject",
+        },
+        {
+            "urls": ["turn:openrelay.metered.ca:443"],
+            "username": "openrelayproject",
+            "credential": "openrelayproject",
+        },
+    ]
+})
 def correct_plate(text):
     """Correct OCR errors"""
     text = re.sub(r'[^A-Z0-9]', '', text.upper())
