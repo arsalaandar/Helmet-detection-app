@@ -38,16 +38,29 @@ LETTER_TO_NUMBER = {
     'O': '0', 'D': '0', 'I': '1', 'L': '1', 'Z': '2', 'E': '3', 
     'A': '4', 'S': '5', 'G': '6', 'T': '7', 'B': '8', 'Q': '0', 'U': '0'
 }
+import requests  # ADD THIS at the top with other imports
+
+# ----------------------------
+# ICE / TURN CONFIGURATION
+# ----------------------------
 @st.cache_data(ttl=3600)
 def get_ice_servers():
     try:
         response = requests.get(
-            "https://helmet-detection-app.metered.live/api/v1/turn/credentials?apiKey=_3Z_3GKQFfN49gKA630oB2Z9p2NnlL6BIWJ4K69seMzrDQXr"
+            "https://helmet-detection-app.metered.live/api/v1/turn/credentials"
+            "?apiKey=_3Z_3GKQFfN49gKA630oB2Z9p2NnlL6BIWJ4K69seMzrDQXr",
+            timeout=5
         )
-        return response.json()
-    except:
-        return [{"urls": ["stun:stun.l.google.com:19302"]}]
+        ice_servers = response.json()
+        return ice_servers
+    except Exception as e:
+        st.warning(f"Could not fetch TURN credentials: {e}. Using fallback.")
+        return [
+            {"urls": ["stun:stun.l.google.com:19302"]},
+            {"urls": ["stun:stun1.l.google.com:19302"]},
+        ]
 
+# SINGLE definition — remove the second RTC_CONFIGURATION block entirely
 RTC_CONFIGURATION = RTCConfiguration({"iceServers": get_ice_servers()})
 # Create directories
 VIOLATION_DIR = Path("violations")
