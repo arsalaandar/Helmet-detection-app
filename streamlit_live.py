@@ -37,7 +37,17 @@ LETTER_TO_NUMBER = {
     'O': '0', 'D': '0', 'I': '1', 'L': '1', 'Z': '2', 'E': '3', 
     'A': '4', 'S': '5', 'G': '6', 'T': '7', 'B': '8', 'Q': '0', 'U': '0'
 }
+@st.cache_data(ttl=3600)
+def get_ice_servers():
+    try:
+        response = requests.get(
+            "https://helmet-detection-app.metered.live/api/v1/turn/credentials?apiKey=_3Z_3GKQFfN49gKA630oB2Z9p2NnlL6BIWJ4K69seMzrDQXr"
+        )
+        return response.json()
+    except:
+        return [{"urls": ["stun:stun.l.google.com:19302"]}]
 
+RTC_CONFIGURATION = RTCConfiguration({"iceServers": get_ice_servers()})
 # Create directories
 VIOLATION_DIR = Path("violations")
 VIOLATION_DIR.mkdir(exist_ok=True)
@@ -494,7 +504,6 @@ def main():
         ctx = webrtc_streamer(
             key="helmet-live",
             video_processor_factory=HelmetPlateProcessor,
-            rtc_configuration=RTC_CONFIGURATION,   # ← TURN server added here
             media_stream_constraints={
                 "video": {"width": {"ideal": 1280}, "height": {"ideal": 720}},
                 "audio": False
