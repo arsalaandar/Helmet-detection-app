@@ -466,19 +466,6 @@ def main():
     with st.spinner("Loading models..."):
         helmet_model, plate_model, person_model, ocr = load_models()
     st.success("✅ All models loaded!")
-    
-if st.button("🔍 Test TURN API"):
-    try:
-        import requests
-        resp = requests.get(
-            "https://helmet-detection-app.metered.live/api/v1/turn/credentials"
-            "?apiKey=_3Z_3GKQFfN49gKA630oB2Z9p2NnlL6BIWJ4K69seMzrDQXr",
-            timeout=5
-        )
-        st.write("Status:", resp.status_code)
-        st.write("Response:", resp.json())
-    except Exception as e:
-        st.error(f"Failed: {e}")
     # Sidebar
     st.sidebar.title("⚙️ Settings")
     helmet_conf = st.sidebar.slider("Helmet Confidence", 0.1, 0.9, 0.3, 0.05)
