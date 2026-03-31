@@ -15,7 +15,7 @@ AI-powered system for detecting helmet violations and reading license plates in 
 - Streamlit for web interface
 
 ## Live Demo
-[View App](https://helmet-detection-app-nsrgpor9y8ysbmcp8ffafr.streamlit.app/)
+[View App](https://helmet-detection-app-3mloqmjrdsopac36bvt2u5.streamlit.app/)
 
 ## Local Setup
 ```bash
