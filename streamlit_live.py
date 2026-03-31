@@ -50,33 +50,25 @@ VIOLATION_EXCEL = "violations.xlsx"
 # ----------------------------
 def get_ice_servers():
     try:
-        response = requests.get(
-            "https://helmet-detection-app.metered.live/api/v1/turn/credentials"
-            "?apiKey=_3Z_3GKQFfN49gKA630oB2Z9p2NnlL6BIWJ4K69seMzrDQXr",
+        resp = requests.put(
+            "https://global.xirsys.net/_turn/helmet-detection",
+            auth=("Arsa", "42b3751e-2ce3-11f1-b2fe-0242ac140002"),
+            headers={"Content-Type": "application/json"},
+            data='{"format": "urls"}',
             timeout=5
         )
-        ice_servers = response.json()
-        if isinstance(ice_servers, list) and len(ice_servers) > 0:
+        data = resp.json()
+        ice_servers = data.get("v", {}).get("iceServers", [])
+        if ice_servers:
             return ice_servers
     except Exception:
         pass
 
-    # Hardcoded fallback
+    # Fallback
     return [
         {"urls": ["stun:stun.l.google.com:19302"]},
         {"urls": ["stun:stun1.l.google.com:19302"]},
-        {
-            "urls": ["turn:relay.metered.ca:80"],
-            "username": "e499b4f642938a87b0e8d4f8",
-            "credential": "uMfWBCG3L2+2Q+XW",
-        },
-        {
-            "urls": ["turn:relay.metered.ca:443"],
-            "username": "e499b4f642938a87b0e8d4f8",
-            "credential": "uMfWBCG3L2+2Q+XW",
-        },
     ]
-
 # ----------------------------
 # HELPER FUNCTIONS
 # ----------------------------
