@@ -58,13 +58,17 @@ def get_ice_servers():
             timeout=5
         )
         data = resp.json()
-        ice_servers = data.get("v", {}).get("iceServers", [])
+        # Xirsys returns {"v": {"iceServers": {"urls": [...], "username": ..., "credential": ...}}}
+        ice_servers = data.get("v", {}).get("iceServers", None)
         if ice_servers:
-            return ice_servers
-    except Exception:
+            # Convert single dict to list
+            if isinstance(ice_servers, dict):
+                return [ice_servers]
+            elif isinstance(ice_servers, list):
+                return ice_servers
+    except Exception as e:
         pass
 
-    # Fallback
     return [
         {"urls": ["stun:stun.l.google.com:19302"]},
         {"urls": ["stun:stun1.l.google.com:19302"]},
@@ -466,6 +470,15 @@ def main():
     with st.spinner("Loading models..."):
         helmet_model, plate_model, person_model, ocr = load_models()
     st.success("✅ All models loaded!")
+    if st.button("🔍 Test Xirsys"):
+    resp = requests.put(
+        "https://global.xirsys.net/_turn/helmet-detection",
+        auth=("Arsa", "42b3751e-2ce3-11f1-b2fe-0242ac140002"),
+        headers={"Content-Type": "application/json"},
+        data='{"format": "urls"}',
+        timeout=5
+    )
+    st.write(resp.json())
     # Sidebar
     st.sidebar.title("⚙️ Settings")
     helmet_conf = st.sidebar.slider("Helmet Confidence", 0.1, 0.9, 0.3, 0.05)
