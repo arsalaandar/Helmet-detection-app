@@ -56,12 +56,12 @@ def get_ice_servers():
             timeout=5
         )
         ice_servers = response.json()
-        if ice_servers and len(ice_servers) > 0:
+        if isinstance(ice_servers, list) and len(ice_servers) > 0:
             return ice_servers
     except Exception:
         pass
 
-    # Fallback if API fails
+    # Hardcoded fallback
     return [
         {"urls": ["stun:stun.l.google.com:19302"]},
         {"urls": ["stun:stun1.l.google.com:19302"]},
@@ -72,11 +72,6 @@ def get_ice_servers():
         },
         {
             "urls": ["turn:relay.metered.ca:443"],
-            "username": "e499b4f642938a87b0e8d4f8",
-            "credential": "uMfWBCG3L2+2Q+XW",
-        },
-        {
-            "urls": ["turns:relay.metered.ca:443?transport=tcp"],
             "username": "e499b4f642938a87b0e8d4f8",
             "credential": "uMfWBCG3L2+2Q+XW",
         },
@@ -506,7 +501,7 @@ def main():
         ctx = webrtc_streamer(
             key="helmet-live",
             video_processor_factory=HelmetPlateProcessor,
-            rtc_configuration=RTCConfiguration({"iceServers": ice}),
+            rtc_configuration={"iceServers": ice},
             media_stream_constraints={
                 "video": {"width": {"ideal": 1280}, "height": {"ideal": 720}},
                 "audio": False
