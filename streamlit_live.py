@@ -470,7 +470,7 @@ def main():
     with st.spinner("Loading models..."):
         helmet_model, plate_model, person_model, ocr = load_models()
     st.success("✅ All models loaded!")
-    if st.button("🔍 Test Xirsys"):
+if st.button("🔍 Test Xirsys"):
     resp = requests.put(
         "https://global.xirsys.net/_turn/helmet-detection",
         auth=("Arsa", "42b3751e-2ce3-11f1-b2fe-0242ac140002"),
