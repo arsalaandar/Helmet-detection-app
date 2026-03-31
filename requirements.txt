@@ -2,7 +2,7 @@ streamlit
 streamlit-webrtc
 ultralytics
 paddleocr
-paddlepaddle==3.0.0
+paddlepaddle
 numpy<2.0.0
 Pillow
 torch
